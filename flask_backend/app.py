@@ -23,11 +23,11 @@ limiter = Limiter(
 )
 def get_db():
     con = psycopg.connect(
-      dbname = "att",
-      user = "postgres",
-      password = "avi",
-      host = "localhost",
-      port = "5432"
+        host=os.environ.get("DB_HOST"),
+        port=os.environ.get("DB_PORT"),
+        dbname=os.environ.get("DB_NAME"),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASSWORD")
     )
     return con
 ph = PasswordHasher(time_cost = 3, memory_cost = 65536, parallelism = 4)
