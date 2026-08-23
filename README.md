@@ -474,6 +474,7 @@ Given more time, I would improve the project in several directions.
 * Improve database connection management and indexing.
 * Add monitoring and structured logging.
 * Test the system with a much larger number of users and files.
+* Async (by shifting to FastAPI)
 
 ### Features
 
@@ -486,6 +487,12 @@ Given more time, I would improve the project in several directions.
 * Expand automated testing and integration testing.
 
 ---
+#NOTE 
+- Postman was used to test all the endpoints.
+- API documentation will be available in the repo soon.
+- Appwrite implementation is not intended to replace the custom backend. Rather, it provides an abstraction over several backend responsibilites and helped
+understand how authentication, authorization, permissions, storage and database management can be handled through a managed platform. The custom Flask backend
+provides a greater control and customization over these components while Appwrite reduces the amount of infrastructure that needs to be implemented manually.
 
 # Conclusion
 
