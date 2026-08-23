@@ -381,9 +381,6 @@ DB_PASSWORD=your_password
 JWT_SECRET_KEY=your_secret
 ```
 
-The real `.env` file must not be committed to GitHub.
-
-### Seed the database
 
 Run the provided `seed.sql` against the PostgreSQL database.
 
@@ -410,7 +407,7 @@ The Appwrite project must be configured with:
 * The three seeded users
 * User-specific file permissions
 
-No Appwrite API key or other secret should be committed to this repository.
+No Appwrite API key or other secret is committed to this repository.
 
 ---
 
@@ -424,6 +421,7 @@ POST /login
 POST /logout
 POST /refresh
 
+PROTECTED ENDPOINTS:
 GET /me
 GET /files
 GET /files/<file_id>
@@ -463,13 +461,13 @@ Given more time, I would improve the project in several directions.
 * Strengthen request validation for malformed and unexpected inputs.
 * Expand negative testing across all endpoints.
 * Improve CORS configuration for deployment instead of relying on broad development settings.
-* Add stronger abuse controls and infrastructure-level protection against large-scale denial-of-service traffic.
+* Add stronger abuse controls and infrastructure-level protection against large-scale denial-of-service(DoS) traffic.
 * Add audit logging and more detailed security monitoring.
 * Improve secret management for production deployments.
 
 ### Scalability
 
-* Move file storage from the local filesystem to production object storage.
+* Move file storage from the local filesystem to production object storage by deploying the server.
 * Add a distributed rate-limiting mechanism such as Redis for multiple backend instances.
 * Improve database connection management and indexing.
 * Add monitoring and structured logging.
