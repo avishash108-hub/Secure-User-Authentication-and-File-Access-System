@@ -1,6 +1,0 @@
-Flask
-psycopg
-PyJWT
-argon2-cffi
-Flask-CORS
-Flask-Limiter
