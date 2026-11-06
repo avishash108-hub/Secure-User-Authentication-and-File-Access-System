@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, jsonify, request, send_file
+from flask import Blueprint, jsonify, request, send_file, current_app
 from backend.db.connection import get_db
 from auth.decorators import token_req
 files_bp = Blueprint("files", __name__)
@@ -57,7 +57,7 @@ def get_file(u_id, file_id):
 
     file_name, mime_type, file_path = file
 
-    full_path = os.path.join(app.root_path, file_path)
+    full_path = os.path.join(current_app.root_path, file_path)
 
     if not os.path.isfile(full_path):
         return jsonify({"error": "file unavailable"}), 404

@@ -1,93 +1,98 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Auth Test Client</title>
+<meta charset="UTF-8">
+<title>Auth Test Client</title>
 
-  <style>
-    body {
-      font-family: monospace;
-      max-width: 700px;
-      margin: 30px auto;
-      padding: 0 15px;
-    }
+<style>
+  body {
+    font-family: monospace;
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 0 15px;
+  }
 
-    fieldset {
-      margin-bottom: 20px;
-    }
+  fieldset {
+    margin-bottom: 20px;
+  }
 
-    label {
-      display: block;
-      margin-top: 8px;
-    }
+  label {
+    display: block;
+    margin-top: 8px;
+  }
 
-    input, button, select {
-      font-family: monospace;
-      font-size: 14px;
-      padding: 4px;
-      margin-top: 2px;
-    }
+  input, button, select {
+    font-family: monospace;
+    font-size: 14px;
+    padding: 4px;
+    margin-top: 2px;
+  }
 
-    button {
-      cursor: pointer;
-      margin-right: 6px;
-      margin-top: 8px;
-    }
+  button {
+    cursor: pointer;
+    margin-right: 6px;
+    margin-top: 8px;
+  }
 
-    pre {
-      background: #eee;
-      padding: 10px;
-      overflow-x: auto;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
+  pre {
+    background: #eee;
+    padding: 10px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
 
-    hr {
-      margin: 25px 0;
-    }
-  </style>
+  .row {
+    margin-bottom: 6px;
+  }
+
+  hr {
+    margin: 25px 0;
+  }
+</style>
 </head>
 
 <body>
 
-<h1>Auth Test Client</h1>
+<h1>Auth Test Client (Do not build a new GUI; use this page only)</h1>
 
 <fieldset>
   <legend>Backend mode</legend>
 
   <label>
-    <input type="radio" name="backendMode" value="custom" checked>
-    Custom REST backend (Flask)
+    <input type="radio" id="mockMode" name="backendMode" value="mock" checked>
+    Mock (in-browser, mock-api.js + seed-data.json)
   </label>
 
   <label>
-    <input type="radio" name="backendMode" value="appwrite" disabled>
-    Appwrite (adapter not implemented yet)
+    <input type="radio" name="backendMode" value="custom">
+    Custom REST backend (Node/Express or Python)
+  </label>
+
+  <label>
+    <input type="radio" name="backendMode" value="appwrite">
+    Appwrite (appwrite-adapter.js talks to Appwrite directly via its Web SDK)
   </label>
 </fieldset>
 
 <fieldset>
-  <legend>Custom backend settings</legend>
+  <legend>Custom backend settings (only used in Custom REST mode)</legend>
 
   <label>
     Base URL
-    <input
-      id="baseUrl"
-      value="https://osdag-login.onrender.com"
-      size="40"
-    >
+    <input id="baseUrl" value="https://osdag-login.onrender.com" size="40">
   </label>
 
   <label>
     <input type="checkbox" id="useCookies">
-    Backend uses cookie sessions
+    Backend uses cookie sessions (send credentials)
   </label>
 </fieldset>
 
 <fieldset>
-  <legend>Appwrite settings (not currently active)</legend>
+  <legend>Appwrite settings (only used in Appwrite mode)</legend>
 
   <label>
     Endpoint
@@ -111,11 +116,31 @@
 
   <label>
     Storage bucket ID
-    <input id="awBucketId" value="6a8b2ea70010dfac74ba" size="30">
+    <input id="awBucketId" value="user-files" size="30">
   </label>
+
+  <p>These map to resources created in the Appwrite Console.</p>
 </fieldset>
 
 <hr>
+
+<fieldset>
+  <legend>Quick-fill seeded test users</legend>
+
+  <p>These buttons fill the login form. Use credentials matching your Appwrite users.</p>
+
+  <button onclick="fillUser('alice@example.com','Password123!')">
+    User A: alice@example.com
+  </button>
+
+  <button onclick="fillUser('bob@example.com','Password123!')">
+    User B: bob@example.com
+  </button>
+
+  <button onclick="fillUser('carol@example.com','Password123!')">
+    User C: carol@example.com
+  </button>
+</fieldset>
 
 <fieldset>
   <legend>Register</legend>
@@ -127,7 +152,7 @@
 
   <label>
     Password
-    <input id="regPassword" type="password" value="Password123!">
+    <input id="regPassword" type="text" value="Password123!">
   </label>
 
   <button onclick="doRegister()">Register</button>
@@ -143,7 +168,7 @@
 
   <label>
     Password
-    <input id="loginPassword" type="password" value="Password123!">
+    <input id="loginPassword" type="text" value="Password123!">
   </label>
 
   <button onclick="doLogin()">Login</button>
@@ -151,14 +176,12 @@
 </fieldset>
 
 <fieldset>
-  <legend>Session tokens</legend>
+  <legend>Session token (only needed for Custom REST JWT/bearer mode)</legend>
 
   <label>
-    Access token
+    Token
     <input id="token" size="60">
   </label>
-
-  <p id="sessionStatus">Not logged in</p>
 </fieldset>
 
 <fieldset>
@@ -169,263 +192,258 @@
 
   <label>
     File ID
-    <input id="fileId" value="1" size="10">
+    <input id="fileId" value="" size="40">
   </label>
 
   <button onclick="getFileById()">GET /files/:id</button>
-  <button onclick="downloadFileById()">Download file</button>
+  <button onclick="downloadFileById()">Download /files/:id</button>
 </fieldset>
 
 <h3>Response</h3>
+
 <pre id="output">(responses will show up here)</pre>
 
+<!-- Load mock API first -->
+<script src="mock-api.js"></script>
+
+<!-- Load Appwrite SDK second -->
+<script src="https://sdk.appwrite.io/web/29.2.0/sdk.min.js"></script>
+
+<!-- Load Appwrite adapter third -->
+<script src="appwrite-adapter.js"></script>
+
 <script>
-  // The refresh token is kept separately from the access token.
-  let refreshToken = '';
+function base() {
+    return document.getElementById('baseUrl').value.trim().replace(/\/$/, '');
+}
 
-  function base() {
-    return document.getElementById('baseUrl').value.trim().replace(/\/+$/, '');
-  }
-
-  function useCookies() {
+function useCookies() {
     return document.getElementById('useCookies').checked;
-  }
+}
 
-  function tokenVal() {
+function tokenVal() {
     return document.getElementById('token').value.trim();
-  }
+}
 
-  function log(label, data) {
+function log(label, data) {
     document.getElementById('output').textContent =
-      label + '\n\n' +
-      (typeof data === 'string'
-        ? data
-        : JSON.stringify(data, null, 2));
-  }
+        label + '\n\n' +
+        (typeof data === 'string'
+            ? data
+            : JSON.stringify(data, null, 2));
+}
 
-  function updateSessionStatus(message) {
-    document.getElementById('sessionStatus').textContent = message;
-  }
+function fillUser(email, password) {
+    document.getElementById('loginEmail').value = email;
+    document.getElementById('loginPassword').value = password;
+    document.getElementById('regEmail').value = email;
+    document.getElementById('regPassword').value = password;
+}
 
-  function checkMode() {
-    const mode = document.querySelector(
-      'input[name="backendMode"]:checked'
-    ).value;
+function backendMode() {
+    return document.querySelector('input[name="backendMode"]:checked').value;
+}
 
-    if (mode !== 'custom') {
-      log('Mode unavailable', 'Only Custom REST backend mode is currently implemented.');
-      return false;
-    }
+async function request(path, options = {}) {
+    options.headers = options.headers || {};
 
-    return true;
-  }
-
-  // Common request handler for Flask API requests.
-  async function request(path, options = {}, authToken = tokenVal()) {
-    const headers = { ...(options.headers || {}) };
-
-    if (!useCookies() && authToken) {
-      headers['Authorization'] = 'Bearer ' + authToken;
+    if (!useCookies() && tokenVal()) {
+        options.headers['Authorization'] = 'Bearer ' + tokenVal();
     }
 
     if (useCookies()) {
-      options.credentials = 'include';
+        options.credentials = 'include';
     }
 
+    const res = await fetch(base() + path, options);
+    const raw = await res.text();
+
+    let body;
+
     try {
-      const res = await fetch(base() + path, {
-        ...options,
-        headers
-      });
+        body = JSON.parse(raw);
+    } catch {
+        body = raw;
+    }
 
-      const contentType = res.headers.get('content-type') || '';
-      let body;
-
-      if (contentType.includes('application/json')) {
-        body = await res.json();
-      } else {
-        body = await res.text();
-      }
-
-      return {
+    return {
         status: res.status,
-        ok: res.ok,
         body
-      };
+    };
+}
 
-    } catch (error) {
-      return {
-        status: 0,
-        ok: false,
-        body: error.message
-      };
-    }
-  }
-
-  async function doRegister() {
-    if (!checkMode()) return;
-
-    const email = document.getElementById('regEmail').value.trim();
-    const password = document.getElementById('regPassword').value;
-
-    const result = await request('/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
-    }, '');
-
-    log('POST /register', result);
-  }
-
-  async function doLogin() {
-    if (!checkMode()) return;
-
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-
-    const result = await request('/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
-    }, '');
-
-    if (result.ok && result.body && typeof result.body === 'object') {
-      if (result.body.access_token) {
-        document.getElementById('token').value =
-          result.body.access_token;
-      }
-
-      if (result.body.refresh_token) {
-        refreshToken = result.body.refresh_token;
-      }
-
-      updateSessionStatus('Logged in');
-    }
-
-    log('POST /login', result);
-  }
-
-  async function doLogout() {
-    if (!checkMode()) return;
-
-    if (!refreshToken) {
-      log('Logout', 'No refresh token available. Log in first.');
-      return;
-    }
-
-    // Your Flask logout route expects the refresh token.
-    const result = await request(
-      '/logout',
-      { method: 'POST' },
-      refreshToken
-    );
-
-    if (result.ok) {
-      document.getElementById('token').value = '';
-      refreshToken = '';
-      updateSessionStatus('Logged out');
-    }
-
-    log('POST /logout', result);
-  }
-
-  async function getMe() {
-    if (!checkMode()) return;
-
-    const result = await request('/me', {
-      method: 'GET'
-    });
-
-    log('GET /me', result);
-  }
-
-  async function getFiles() {
-    if (!checkMode()) return;
-
-    const result = await request('/files', {
-      method: 'GET'
-    });
-
-    log('GET /files', result);
-  }
-
-  // Your previously shown Flask route serves files at /files/<file_id>.
-  async function getFileById() {
-    await downloadFileById();
-  }
-
-  async function downloadFileById() {
-    if (!checkMode()) return;
-
-    const id = document.getElementById('fileId').value.trim();
-
-    if (!id) {
-      log('Download', 'Enter a file ID first.');
-      return;
-    }
-
-    const headers = {};
-
-    if (!useCookies() && tokenVal()) {
-      headers['Authorization'] = 'Bearer ' + tokenVal();
-    }
-
+async function doRegister() {
     try {
-      const res = await fetch(base() + '/files/' + encodeURIComponent(id), {
-        method: 'GET',
-        headers,
-        credentials: useCookies() ? 'include' : 'same-origin'
-      });
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
 
-      if (!res.ok) {
-        const errorBody = await res.text();
+        if (backendMode() === 'appwrite') {
+            const result = await window.appwriteAdapter.register(email, password);
+            log('Appwrite registration successful', result);
+            return;
+        }
 
-        log('GET /files/' + id, {
-          status: res.status,
-          body: errorBody
+        const result = await request('/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
         });
 
-        return;
-      }
-
-      const contentType = res.headers.get('content-type') || '';
-
-      // Display JSON responses instead of downloading them.
-      if (contentType.includes('application/json')) {
-        log('GET /files/' + id, {
-          status: res.status,
-          body: await res.json()
-        });
-        return;
-      }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-
-      a.href = url;
-      a.download = 'file-' + id;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      URL.revokeObjectURL(url);
-
-      log('GET /files/' + id, {
-        status: res.status,
-        note: 'File download triggered.'
-      });
+        log('POST /register', result);
 
     } catch (error) {
-      log('Download error', error.message);
+        log('Registration error', error.message);
     }
-  }
+}
+
+async function doLogin() {
+    try {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        if (backendMode() === 'appwrite') {
+            const result = await window.appwriteAdapter.login(email, password);
+            log('Appwrite login successful', result);
+            return;
+        }
+
+        const result = await request('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (result.body && result.body.access_token) {
+            document.getElementById('token').value = result.body.access_token;
+        }
+
+        log('POST /login', result);
+
+    } catch (error) {
+        log('Login error', error.message);
+    }
+}
+
+async function doLogout() {
+    try {
+        if (backendMode() === 'appwrite') {
+            const result = await window.appwriteAdapter.logout();
+            log('Appwrite logout successful', result);
+            return;
+        }
+
+        const result = await request('/logout', { method: 'POST' });
+        document.getElementById('token').value = '';
+
+        log('POST /logout', result);
+
+    } catch (error) {
+        log('Logout error', error.message);
+    }
+}
+
+async function getMe() {
+    try {
+        if (backendMode() === 'appwrite') {
+            const result = await window.appwriteAdapter.getMe();
+            log('Appwrite current user', result);
+            return;
+        }
+
+        const result = await request('/me', { method: 'GET' });
+        log('GET /me', result);
+
+    } catch (error) {
+        log('Get user error', error.message);
+    }
+}
+
+async function getFiles() {
+    try {
+        if (backendMode() === 'appwrite') {
+            const result = await window.appwriteAdapter.getFiles();
+            log('Appwrite files', result);
+            return;
+        }
+
+        const result = await request('/files', { method: 'GET' });
+        log('GET /files', result);
+
+    } catch (error) {
+        log('Get files error', error.message);
+    }
+}
+
+async function getFileById() {
+    try {
+        const id = document.getElementById('fileId').value.trim();
+
+        if (backendMode() === 'appwrite') {
+            const result = await window.appwriteAdapter.getFileById(id);
+            log('Appwrite file details', result);
+            return;
+        }
+
+        const result = await request('/files/' + id, { method: 'GET' });
+        log('GET /files/' + id, result);
+
+    } catch (error) {
+        log('Get file error', error.message);
+    }
+}
+
+async function downloadFileById() {
+    try {
+        const id = document.getElementById('fileId').value.trim();
+
+        if (backendMode() === 'appwrite') {
+            const downloadUrl = window.appwriteAdapter.downloadFileById(id);
+
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = 'file-' + id;
+            a.click();
+
+            log('Appwrite download', 'Download triggered.');
+            return;
+        }
+
+        const headers = {};
+
+        if (!useCookies() && tokenVal()) {
+            headers['Authorization'] = 'Bearer ' + tokenVal();
+        }
+
+        const res = await fetch(base() + '/files/' + id + '/download', {
+            headers,
+            credentials: useCookies() ? 'include' : 'same-origin'
+        });
+
+        if (!res.ok) {
+            log('Download error', {
+                status: res.status,
+                body: await res.text()
+            });
+            return;
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'file-' + id;
+        a.click();
+
+        URL.revokeObjectURL(url);
+
+        log('Download', 'File download triggered.');
+
+    } catch (error) {
+        log('Download error', error.message);
+    }
+}
 </script>
 
 </body>
 </html>
-
