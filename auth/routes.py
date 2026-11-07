@@ -16,7 +16,7 @@ def register():
   "password": "Password123!"
 }'''
     data = request.get_json()
-    for field in ["email", "username", "password"]:
+    for field in ["email", "password"]:
         if not data.get(field):
             return jsonify({"error" : f"{field} is required"}), 400
 
